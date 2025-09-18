@@ -26,11 +26,6 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U $POSTGRES_USER -d $POSTGRES_DB  "
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
 
     steps:
       # 1️⃣ Checkout code
@@ -66,21 +61,30 @@ jobs:
       # 7️⃣ Build Docker image
       - name: Build Docker image
         run: |
-          docker build -t ${{ github.repository }}:latest .
+          docker build -t ${{ secrets.IMAGE_NAME }}:latest .
 
       # 8️⃣ Scan Docker image avec Trivy
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ github.repository }}:latest
+          image-ref: ${{ secrets.IMAGE_NAME }}:latest
           format: 'table'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
+      # 9️⃣ Wait for DB to be ready
+      - name: Wait for DB to be ready
+        run: |
+          until nc -z db 5432; do
+            echo "⏳ Attente de la DB db:5432..."
+            sleep 2
+          done
+          echo "✅ DB disponible !"
+
       # 9️⃣ Run Django container connecté au réseau
-      - name: Run Django container
+      - name: Run Django container connected in network with database
         run: |
           docker run -d --name ${{ github.repository }} \
             --network github-network \
@@ -89,7 +93,7 @@ jobs:
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e DB_NAME=${{ secrets.DB_NAME }} \
-            ${{ github.repository }}:latest
+            ${{ secrets.IMAGE_NAME }}:latest
 
       # 🔟 Tests Django
       - name: Run Django tests
@@ -105,9 +109,9 @@ jobs:
       - name: Tag & push Docker image
         if: github.ref == 'refs/heads/main'
         run: |
-          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/portfolio_${{ github.repository }}
+          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.IMAGE_NAME }}
           TAG=v1.0.${{ github.run_number }}
-          docker tag ${{ github.repository }}:latest $IMAGE_NAME:$TAG
+          docker tag ${{ secrets.IMAGE_NAME }}:latest $IMAGE_NAME:$TAG
           docker push $IMAGE_NAME:$TAG
 
   # -----------------------------------------------
