@@ -15,25 +15,18 @@ jobs:
   # -----------------------------------------------
   ci:
     runs-on: ubuntu-latest
-    
-    env:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: test
-      POSTGRES_PASSWORD: test
-      DB_HOST: db
-      DB_PORT: 5432
 
     services:
       db:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ env.POSTGRES_DB }}
-          POSTGRES_USER: ${{ env.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.DB_NAME }}
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
-          - 5432:5432
+          - "${{ secrets.DB_PORT }}:5432"
         options: >-
-          --health-cmd="pg_isready -U test -d testdb"
+          --health-cmd="pg_isready -U $POSTGRES_USER -d $POSTGRES_DB "
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
@@ -90,11 +83,11 @@ jobs:
         run: |
           docker run -d --name ${{ github.repository }} \
             --network github-network \
-            -e DB_HOST=${{ env.DB_HOST }} \
-            -e DB_PORT=${{ env.DB_PORT }} \
-            -e DB_USER=${{ env.POSTGRES_USER }} \
-            -e DB_PASSWORD=${{ env.POSTGRES_PASSWORD }} \
-            -e DB_NAME=${{ env.POSTGRES_DB }} \
+            -e DB_HOST=${{ secrets.DB_HOST }} \
+            -e DB_PORT=${{ secrets.DB_PORT }} \
+            -e DB_USER=${{ secrets.DB_USER }} \
+            -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
             ${{ github.repository }}:latest
 
       # 🔟 Tests Django
@@ -123,7 +116,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: ci
     steps:
-      steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -168,7 +160,7 @@ jobs:
         run: |
           heroku config:set \
             DB_HOST=${{ secrets.DB_HOST }} \
-            DB_PORT=5432 \
+            DB_PORT=${{ secrets.DB_PORT }} \
             DB_USER=${{ secrets.DB_USER }} \
             DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             DB_NAME=${{ secrets.DB_NAME }} \
