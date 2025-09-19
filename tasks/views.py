@@ -75,7 +75,7 @@ class Custom500(TemplateView):
     template_name = 'tasks/500.html'
 
 
-def page_not_found(request, exception):
+def page_not_found():
     """
         function to return view http error 404.  
     """
@@ -88,7 +88,7 @@ def page_not_found(request, exception):
     return response
 
 
-def server_error(request):
+def server_error():
     """
         function to return view http error 500. 
     """

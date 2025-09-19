@@ -27,5 +27,8 @@ class Task(models.Model):
         return reverse('tasks:tasks_edit', kwargs={'pk': self.pk})
 
     class Meta:
+        """
+        Meta class doc string
+        """
         verbose_name = 'Task'
         verbose_name_plural = 'Tasks'

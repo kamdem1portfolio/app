@@ -18,8 +18,10 @@ class TaskModelTest(TestCase):
         :return: None
         """
         # Setting up objects which can be use for all test methods
-        Task.objects.create(task_title='Development', task_description='This task includes all the development '
-                                                                       'related activities for this project')
+        Task.objects.create(
+            task_title='Development', 
+            task_description="""This task includes all the development 
+                            related activities for this project""")
 
     def test_task_title_label(self):
         """
