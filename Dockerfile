@@ -26,8 +26,10 @@ WORKDIR /app
 
 # Installer dépendances système nécessaires (par ex psycopg2, etc.)
 RUN apt-get update 
-RUN apt-get install -y --no-install-recommends \
-    build-essential libpq-dev curl netcat
+RUN apt-get install -y --no-install-recommends build-essential 
+RUN apt-get install -y --no-install-recommends libpq-dev 
+RUN apt-get install -y --no-install-recommends curl 
+RUN apt-get install -y --no-install-recommends netcat
 RUN rm -rf /var/lib/apt/lists/*
 
 # Copier requirements
