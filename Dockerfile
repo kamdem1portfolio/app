@@ -8,8 +8,12 @@ WORKDIR /frontend
 # Copier les fichiers du frontend
 # (ajuste le chemin selon la structure du repo,
 # par exemple s’il y a un dossier frontend ou assets)
-COPY static/ ./static/
 COPY package*.json ./
+COPY tailwind.config.js ./
+COPY static/ ./static/
+COPY src/ ./images/
+COPY images/ ./images/
+COPY media/ ./media/
 
 # Installer les dépendances front
 RUN npm install

@@ -39,7 +39,7 @@ if DEBUG:
     STRIPE_COUPON_ID_ABSOLUTE = env("STRIPE_COUPON_ID_ABSOLUTE", default=None)
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
