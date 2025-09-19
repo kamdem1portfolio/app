@@ -73,16 +73,7 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-
-      # 9️⃣ Wait for DB to be ready
-      - name: Wait for DB to be ready
-        run: |
-          until nc -z db 5432; do
-            echo "⏳ Attente de la DB db:5432..."
-            sleep 2
-          done
-          echo "✅ DB disponible !"
-
+      
       # 9️⃣ Run Django container connecté au réseau
       - name: Run Django container connected in network with database
         run: |
@@ -93,12 +84,16 @@ jobs:
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e DB_NAME=${{ secrets.DB_NAME }} \
+            -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
+            -e STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} \
+            -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
+            -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
             ${{ secrets.IMAGE_NAME }}:latest
 
       # 🔟 Tests Django
       - name: Run Django tests
         run: |
-          docker exec ${{ github.repository }} python manage.py test
+          docker exec ${{ github.repository }} python manage.py test users store order
 
       # 1️⃣1️⃣ Healthcheck app
       - name: Check Django health

@@ -1,6 +1,7 @@
 name: Django Unit Tests and Lint
 
-on: [push]
+on: 
+  workflow_dispatch:
 
 jobs:
   test-lint:
