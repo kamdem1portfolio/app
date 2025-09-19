@@ -1,69 +1,167 @@
-# A demo CI/CD pipeline using Python Django and Pytest
+<h1 style="color:rgb(133, 24, 24); text-align:center">Django Pizza Delivery App</h1>
 
-Example Python Django application and CI/CD pipeline for integrating it with GitHub CI/CD.
-This application demonstrates CRUD operations using class based views in Django. It also includes UI for all CRUD views.
-And it's based on this tutorial: https://semaphoreci.com/blog/python-continuous-integration-continuous-delivery.
+<h1>Live Demo</h1>
+<a href="https://notarious2.pythonanywhere.com/">Visit</a> https://notarious2.pythonanywhere.com/
 
-# Local project setup
+<img src="images/front_page.png" alt="Front page"/>
 
-1. Use virtualenv for setting up this project
+<h3>Admin credentials:</h3>
 
-2. Install pip requirements
-   ```
-   pip install -r requirements.txt
-   ```
-3. Create new psql database
-   ```
-   postgres=# create database pydjango;
-   ```
-4. Setup your database credentials and `SITE_URL` in settings.py file available inside ### core folder
-
-5. Once you have setup your database, Open command prompt pointing to the Root of the project directory and run following command to create application default database
-
-   ```
-   (virtualenv / conda environment) > python manage.py migrate
-
-   (virtualenv / conda environment) > python manage.py createsuperuser
-   ```
-
-6. Once all of the above command run sucessfully, We are ready to go. Start server by executing command
-   ```
-   (virtualenv / conda environment) > python manage.py runserver
-   ```
-   and visit the web browser with 'http://127.0.0.1:8000'
-
-## Environment variables
-
-The following environment variables can be set to override defaults:
-
-- `SECRET_KEY`: Django [secret key](https://docs.djangoproject.com/en/2.2/ref/settings/#secret-key).
-- `DB_ENGINE`: Django database [backend](https://docs.djangoproject.com/en/2.2/ref/databases/).
-- `DB_NAME`: database name.
-- `DB_HOST`: database hostname.
-- `DB_PORT`: database port.
-- `DB_USER`: database user.
-- `DB_PASSWORD`: database password.
-
-# CI/CD GIthub
-
-The example pipeline contains 3 blocks:
-
-- Install Dependencies
-  - Installs pip requirements
-- Run Code Analysis
-  - Run code analysis / code linting with Pylint
-- Run Unit Tests
-  - Runs Unit Tests with pytest module for views and models file
-
-# Test with PyTest
-
-To tell pytest witch Django settings that should be used for tests runs, we need to setup a pytest configuration file, called `pytest.ini` in our project root directory. The file contains:
+<p>https://notarious2.pythonanywhere.com/admin/</p>
 
 ```
-[pytest]
-DJANGO_SETTINGS_MODULE=core.test_settings
-addopts = --nomigrations --cov=. --cov-report=html
+login: admin/admin@example.com
+password: admin
 ```
 
-To run the tests, we can invoke directly `pytest` command instead of `manage.py test`.
-The pytest-django is designed to run with the `pytest` command, but in case of you want to use `manage.py test` with pytest-django, you can create [a simple test runner](https://pytest-django.readthedocs.io/en/latest/faq.html#how-can-i-use-manage-py-test-with-pytest-django).
+<hr>
+<p style="font-weight: bold;">This e-commerce app was built using the following technologies:</p>
+<p float="left">
+<img src="images/django.jpeg" style="width:100px; height: 50px; border-radius: 100px;" alt="Django">
+<img src="images/tailwindcss.svg" style="width:200px; height: 30px;" alt="TailwindCSS">
+<img src="images/stripe.webp" style="width:100px; height: 50px;" alt="Stripe">
+<img src="images/jquery.svg" style="width:120px; height: 40px;" alt="JQuery">
+
+</p>
+<h1>Features</h1>
+<ul>
+    <li>
+        <p>Customer Registration, Login and Logout. Customers may login with either <strong>email</strong> or <strong>username</strong></p>
+    </li>
+    <li>
+        <p>Customer and Guest Checkout (using device ID set in Cookies) </p>
+    </li>
+    <li>
+        <p>Delivery and Carry-out option</p>
+    </li>
+    <li>
+        <p>Special <strong>Orders</strong> tab for registered users to view completed orders</p>
+    </li>
+    <li>
+        <p>Deferred <strong>Cash</strong> payment and Instant online payment with <strong>Stripe</strong></p>
+    </li>
+    <li>
+        <p><strong>99%</strong> test coverage with <strong>100+</strong> of both <strong>functional</strong> and <strong>unit tests</strong></p>
+    </li>
+
+</ul>
+
+<h1>SQL Relational Schema</h1>
+<p>The app uses SQLite database. Relational representation of Django Models used in ePizza app are provided below. </p>
+<img src="images/sql_erd.png" alt="SQL model"/>
+
+<h1>Coupons</h1>
+<p>3 coupons (integrated with Stripe Payment Gateway) are available at Checkout </p>
+
+**WINTER:** 50% off the order total
+
+**SUMMER:** $10 off the order total
+
+<h1>App Setup</h1>
+
+**Clone Repository:**
+
+```
+git clone https://github.com/notarious2/Django-Pizza-Delivery.git
+cd Django-Pizza-Delivery
+```
+
+**Configure Environmental variables:**
+<br>
+_inside 'epizza' folder add .env file and add Secret Key, Stripe Publishable Key and Stripe Secret Key:_
+
+```
+SECRET_KEY=
+STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+```
+_To test Stripe's Percent Coupon (otherwise tests are automatically skipped) add:_
+
+```
+STRIPE_COUPON_ID_PERCENT=
+```
+
+**Create and Activate Virtual Environment:**
+
+```
+virtualenv env
+env\Scripts\activate
+```
+
+**Install Dependencies:**
+
+```
+pip install -r requirements.txt
+```
+
+**Run Development Server:**
+
+```
+python manage.py runserver
+```
+
+<h1>Tailwind CSS Setup</h1>
+
+_You must have Node.js installed in your PC_
+<br>
+_Tailwind Directives are in store/static/store/src/input.css_
+<br>
+_Output (autogenerated) stored in store/static/store/src/styles.css_
+
+**Install Dependencies:**
+
+```
+npm install
+```
+
+**Start Tailwind CLI build process**
+
+runs: "tailwind build -i store/static/store/src/input.css -o store/static/store/src/styles.css --watch" <strong>Script</strong> inside <strong>package.json</strong>
+
+```
+npm run build
+```
+
+<h1>Functional and Unit Tests</h1>
+<p>The project contains <strong>60+</strong> both functional and unit tests.</p>
+
+<p>Unit tests cover urls, models, forms and views</p>
+<p>Functional testing is done using Selenium and django's StaticLiveServerTestCase</p>
+
+**Run all tests**
+
+```
+python manage.py test
+```
+
+**Run functional tests**
+
+Located in functional tests folder of a root directory. to see the testing process remove _options.add_argument('headless')_ in SetUp of each functional test
+
+```
+python manage.py test functional_tests
+```
+
+**Run unit tests**
+
+```
+python manage.py test users store orders
+```
+
+**Test coverage report**
+
+```
+coverage run manage.py test
+```
+
+to show report in command line:
+
+```
+coverage report
+```
+
+generates html report in <strong>test_coverage_report</strong> folder
+
+```
+coverage html
+```

@@ -1,77 +1,57 @@
-# =========================
-# Étape 1 : Build et tests
-# =========================
-FROM python:3.11-slim AS builder
+# ------------------------------
+# Étape 1 : build frontend
+# ------------------------------
+FROM node:18 AS frontend
+
+WORKDIR /frontend
+
+# Copier les fichiers du frontend
+# (ajuste le chemin selon la structure du repo,
+# par exemple s’il y a un dossier frontend ou assets)
+COPY static/ ./static/
+COPY package*.json ./
+
+# Installer les dépendances front
+RUN npm install
+
+# Construire le frontend (optimisé)
+RUN npm run build
+
+# ------------------------------
+# Étape 2 : backend Django
+# ------------------------------
+FROM python:3.11-slim AS backend
 
 WORKDIR /app
 
-# Installer dépendances système pour build et PostgreSQL
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    libpq-dev \
-    netcat-traditional \
-    curl \
+# Installer dépendances système nécessaires (par ex psycopg2, etc.)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential libpq-dev curl netcat \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier et installer les dépendances Python
+# Copier requirements
 COPY requirements.txt .
+
+# Installer les paquets Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copier le code source
+# Copier le code Django
 COPY . .
 
-# Lancer les tests unitaires & d’intégration pendant le build
-#RUN python manage.py test
+# Copier le build frontend dans les fichiers statiques Django
+# (ajuste selon où Django attend les fichiers statiques)
+COPY --from=frontend /frontend/build ./staticfiles/
 
-
-# =========================
-# Étape 2 : Image finale
-# =========================
-FROM python:3.11-slim AS final
-
-WORKDIR /app
-
-RUN apt-get update && apt-get install -y \
-    libpq-dev \
-    netcat-traditional \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copier uniquement ce qui est nécessaire depuis le builder
-COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
-COPY --from=builder /usr/local/bin /usr/local/bin
-COPY --from=builder /app /app
-
-# Script d’attente pour la DB
-COPY <<EOF /wait-for-db.sh
-#!/bin/sh
-set -e    # Stoppe le script en cas d erreur
-
-# Récupération de l'hôte et du port de la DB depuis les variables d'environnement
-host="\${DB_HOST:-db}"     # par défaut db si DB_HOST non défini
-port="\${DB_PORT:-5432}"   # par défaut 5432 si DB_PORT non défini
-cmd="\$@"                  # commande à exécuter une fois la DB prête
-
-echo "⏳ Attente de la base de données \$host:\$port..."
-until nc -z \$host \$port; do
-  echo "⏳ Base non prête, réessai dans 2s..."
-  sleep 2
-done
-
-# Boucle tant que le port n'est pas ouvert (la DB n'est pas prête)
-echo "✅ Base prête, lancement de l'application."
-
-# Lance la commande passée en argument (ex : python manage.py runserver)
-exec \$cmd
-EOF
+# Script d’attente pour base de données
+COPY wait-for-db.sh /wait-for-db.sh
 RUN chmod +x /wait-for-db.sh
 
-# Exposer le port
+# Exposer le port sur lequel tourne Django
 EXPOSE 8000
 
-# Healthcheck pour Kubernetes / Docker
+# Healthcheck (optionnel)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD curl -f http://localhost:8000/healthz || exit 1
 
-# Commande de démarrage avec attente de DB
+# Commande de démarrage : attend que la base soit prête, puis lance Django
 CMD ["/wait-for-db.sh", "python", "manage.py", "runserver", "0.0.0.0:8000"]
