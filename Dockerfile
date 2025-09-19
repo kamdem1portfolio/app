@@ -25,9 +25,10 @@ FROM python:3.11-slim AS backend
 WORKDIR /app
 
 # Installer dépendances système nécessaires (par ex psycopg2, etc.)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev curl netcat \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update 
+RUN apt-get install -y --no-install-recommends \
+    build-essential libpq-dev curl netcat
+RUN rm -rf /var/lib/apt/lists/*
 
 # Copier requirements
 COPY requirements.txt .
