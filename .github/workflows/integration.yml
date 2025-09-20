@@ -77,7 +77,7 @@ jobs:
       # 9️⃣ Run Django container connecté au réseau
       - name: Run Django container connected in network with database
         run: |
-          docker run -d --name ${{ secrets.IMAGE_NAME }} \
+          docker run -d --name app_container \
             --network github-network \
             -e DB_HOST=${{ secrets.DB_HOST }} \
             -e DB_PORT=${{ secrets.DB_PORT }} \
@@ -93,7 +93,7 @@ jobs:
       # 🔟 Tests Django
       - name: Run Django tests
         run: |
-          docker exec ${{ secrets.IMAGE_NAME }} python manage.py test users store order
+          docker exec app_container python manage.py test users store order
 
       # 1️⃣1️⃣ Healthcheck app
       - name: Check Django health
