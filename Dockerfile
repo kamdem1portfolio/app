@@ -39,7 +39,7 @@ COPY . .
 
 # Copier le build frontend dans les fichiers statiques Django
 # (ajuste selon où Django attend les fichiers statiques)
-COPY --from=frontend /frontend/build ./static/
+COPY --from=frontend /frontend/store/static/store/src/styles.css ./store/static/store/src/styles.css
 
 # Script d’attente pour base de données
 COPY wait-for-db.sh /wait-for-db.sh
