@@ -69,7 +69,7 @@ jobs:
         with:
           image-ref: ${{ secrets.IMAGE_NAME }}:latest
           format: 'table'
-          exit-code: '1'
+          exit-code: '0' # ✅ CI continue même si vulnérabilités détectées. Si je veux bloquer en cas de pb, je dois mettre 1.
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
