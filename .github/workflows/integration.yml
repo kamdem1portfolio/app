@@ -54,16 +54,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 6️⃣ Create Docker network
-      - name: Create Docker network
-        run: docker network create github-network || true
-
-      # 7️⃣ Build Docker image
+      # 6️⃣ Build Docker image
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.IMAGE_NAME }}:latest .
 
-      # 8️⃣ Scan Docker image avec Trivy
+      # 7️⃣ Scan Docker image avec Trivy
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -74,12 +70,11 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       
-      # 9️⃣ Run Django container connecté au réseau
+      # 8️⃣ Run Django container connecté au réseau
       - name: Run Django container connected in network with database
         run: |
           docker run -d --name app_container \
-            --network github-network \
-            -e DB_HOST=db \
+            -e DB_HOST=localhost \
             -e DB_PORT=${{ secrets.DB_PORT }} \
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
@@ -90,17 +85,17 @@ jobs:
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
             ${{ secrets.IMAGE_NAME }}:latest
 
-      # 🔟 Tests Django
+      # 9️⃣ Tests Django
       - name: Run Django tests
         run: |
           docker exec app_container python manage.py test users store # order
 
-      # 1️⃣1️⃣ Healthcheck app
+      # 🔟 Healthcheck app
       - name: Check Django health
         run: |
           docker exec app_container python manage.py check
 
-      # 1️⃣2️⃣ Tag and push Docker image (release)
+      # 1️⃣1️⃣ Tag and push Docker image (release)
       - name: Tag & push Docker image
         if: github.ref == 'refs/heads/main'
         run: |
