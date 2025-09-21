@@ -79,7 +79,7 @@ jobs:
         run: |
           docker run -d --name app_container \
             --network github-network \
-            -e DB_HOST=${{ secrets.DB_HOST }} \
+            -e DB_HOST=db \
             -e DB_PORT=${{ secrets.DB_PORT }} \
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
