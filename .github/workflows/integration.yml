@@ -26,7 +26,12 @@ jobs:
           POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
         ports:
           - 5432:5432
-
+        options: >-
+          --health-cmd="pg_isready -U ${{ secrets.DB_USER }} -d ${{ secrets.DB_NAME }}"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+          
     steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
@@ -75,7 +80,7 @@ jobs:
         run: |
           docker run -d --name app_container \
             -e DB_HOST=localhost \
-            -e DB_PORT=${{ secrets.DB_PORT }} \
+            -e DB_PORT=5432 \
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
             -e DB_NAME=${{ secrets.DB_NAME }} \
