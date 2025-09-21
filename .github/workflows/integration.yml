@@ -21,16 +21,9 @@ jobs:
       db:
         image: postgres:15
         env:
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
+          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}   # ex: myuser/django-test-ci
+          POSTGRES_IMAGE: postgres:15
+          NETWORK_NAME: github-ci-network
           
     steps:
       # 1️⃣ Checkout code
@@ -75,26 +68,55 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       
-      # 8️⃣ Run Django container connecté au réseau
-      - name: Run Django container connected in network with database
+      - name: Create Docker network
+        run: |
+          docker network create $NETWORK_NAME
+
+      - name: Start Postgres container on network
+        run: |
+          docker run -d --name ci_postgres \
+            --network $NETWORK_NAME \
+            -e POSTGRES_DB=${{ secrets.DB_NAME }} \
+            -e POSTGRES_USER=${{ secrets.DB_USER }} \
+            -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            $POSTGRES_IMAGE
+
+      - name: Wait for Postgres to become ready
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          # use pg_isready inside the postgres container
+          until docker exec ci_postgres pg_isready -U "${{ secrets.DB_USER }}" -d "${{ secrets.DB_NAME }}" >/dev/null 2>&1; do
+            echo "Postgres not ready yet - sleeping 2s"
+            sleep 2
+          done
+          echo "Postgres is ready."
+
+      - name: Start application container (detached, keep alive)
         run: |
           docker run -d --name app_container \
-            -e DB_HOST=localhost \
+            --network $NETWORK_NAME \
+            --entrypoint "" \
+            -e DB_HOST=ci_postgres \
             -e DB_PORT=5432 \
+            -e DB_NAME=${{ secrets.DB_NAME }} \
             -e DB_USER=${{ secrets.DB_USER }} \
             -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            -e DB_NAME=${{ secrets.DB_NAME }} \
             -e SECRET_KEY=${{ secrets.SECRET_KEY }} \
             -e STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} \
             -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
-            ${{ secrets.IMAGE_NAME }}:latest
+            ${{ secrets.IMAGE_NAME }}:latest sleep infinity
 
-      # 9️⃣ Tests Django
+      - name: Apply migrations (inside container)
+        run: |
+          echo "Running migrations..."
+          docker exec app_container python manage.py migrate --noinput
+
       - name: Run Django tests
         run: |
+          echo "Running tests..."
           docker exec app_container python manage.py test users store # order
-
+          
       # 🔟 Healthcheck app
       - name: Check Django health
         run: |
