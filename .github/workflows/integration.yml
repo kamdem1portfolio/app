@@ -70,12 +70,12 @@ jobs:
       
       - name: Create Docker network
         run: |
-          docker network create $NETWORK_NAME
+          docker network create ${{ env.NETWORK_NAME }}
 
       - name: Start Postgres container on network
         run: |
           docker run -d --name ci_postgres \
-            --network $NETWORK_NAME \
+            --network ${{ env.NETWORK_NAME }} \
             -e POSTGRES_DB=${{ secrets.DB_NAME }} \
             -e POSTGRES_USER=${{ secrets.DB_USER }} \
             -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
@@ -94,7 +94,7 @@ jobs:
       - name: Start application container (detached, keep alive)
         run: |
           docker run -d --name app_container \
-            --network $NETWORK_NAME \
+            --network ${{ env.NETWORK_NAME }} \
             --entrypoint "" \
             -e DB_HOST=ci_postgres \
             -e DB_PORT=5432 \
@@ -116,7 +116,7 @@ jobs:
         run: |
           echo "Running tests..."
           docker exec app_container python manage.py test users store # order
-          
+
       # 🔟 Healthcheck app
       - name: Check Django health
         run: |
