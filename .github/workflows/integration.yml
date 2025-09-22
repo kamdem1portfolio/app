@@ -20,6 +20,7 @@ jobs:
     env:
       NETWORK_NAME: github-ci-network
       POSTGRES_IMAGE: postgres:15
+      IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
     
     steps:
       # 1️⃣ Checkout code
@@ -51,13 +52,13 @@ jobs:
       # 6️⃣ Build Docker image
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.IMAGE_NAME }}:latest .
+          docker build -t ${{ env.IMAGE_NAME }}:latest .
 
       # 7️⃣ Scan Docker image avec Trivy
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ secrets.IMAGE_NAME }}:latest
+          image-ref: ${{ env.IMAGE_NAME }}:latest
           format: 'table'
           exit-code: '0' # ✅ CI continue même si vulnérabilités détectées. Si je veux bloquer en cas de pb, je dois mettre 1.
           ignore-unfixed: true
@@ -105,7 +106,7 @@ jobs:
             -e STRIPE_PUBLISHABLE_KEY=${{ secrets.STRIPE_PUBLISHABLE_KEY }} \
             -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
-            ${{ secrets.IMAGE_NAME }}:latest sleep infinity
+            ${{ env.IMAGE_NAME }}:latest sleep infinity
 
       # 7️⃣ Apply migrations (inside container)
       - name: Apply migrations (inside container)
@@ -135,11 +136,10 @@ jobs:
       - name: Tag & push Docker image
         if: github.ref == 'refs/heads/main'
         run: |
-          IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
           TAG=v1.0.${{ github.run_number }}
-          docker tag $IMAGE_NAME:latest $IMAGE_NAME:$TAG
-          docker push $IMAGE_NAME:latest
-          docker push $IMAGE_NAME:$TAG
+          docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.IMAGE_NAME }}:$TAG
+          docker push ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:$TAG
 
   # -----------------------------------------------
   # Job 2 : CD (délivery in stagging Heroku + DAST)
