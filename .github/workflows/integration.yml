@@ -17,14 +17,9 @@ jobs:
   ci:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:15
-        env:
-          IMAGE_NAME: ${{ secrets.IMAGE_NAME }}   # ex: myuser/django-test-ci
-          POSTGRES_IMAGE: postgres:15
-          NETWORK_NAME: github-ci-network
-          
+    env:
+      NETWORK_NAME: github-ci-network
+    
     steps:
       # 1️⃣ Checkout code
       - name: Checkout repository
