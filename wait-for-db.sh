@@ -9,8 +9,8 @@ cmd="$@"                  # commande à exécuter après que la DB soit prête
 echo "⏳ Attente de la base de données $host:$port..."
 
 # Boucle tant que le port n'est pas ouvert
-until (echo > /dev/tcp/$DB_HOST/$DB_PORT) >/dev/null 2>&1; do
-  echo "⏳ Base non prête, réessai..."
+until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; do
+  echo "Postgres not ready yet - sleeping 2s"
   sleep 2
 done
 
