@@ -64,10 +64,12 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
       
+      # 7️⃣ Create Docker network
       - name: Create Docker network
         run: |
           docker network create ${{ env.NETWORK_NAME }}
 
+      # 7️⃣ Start Postgres container on network
       - name: Start Postgres container on network
         run: |
           docker run -d --name ci_postgres \
@@ -77,6 +79,7 @@ jobs:
             -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             ${{ env.POSTGRES_IMAGE }}
 
+      # 7️⃣ Wait for Postgres to become ready
       - name: Wait for Postgres to become ready
         run: |
           echo "Waiting for Postgres to be ready..."
@@ -87,6 +90,7 @@ jobs:
           done
           echo "Postgres is ready."
 
+      # 7️⃣ Start application container (detached, keep alive)
       - name: Start application container (detached, keep alive)
         run: |
           docker run -d --name app_container \
@@ -103,11 +107,13 @@ jobs:
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
             ${{ secrets.IMAGE_NAME }}:latest sleep infinity
 
+      # 7️⃣ Apply migrations (inside container)
       - name: Apply migrations (inside container)
         run: |
           echo "Running migrations..."
           docker exec app_container python manage.py migrate --noinput
 
+      # 7️⃣ Run Django tests
       - name: Run Django tests
         run: |
           echo "Running tests..."
@@ -117,6 +123,13 @@ jobs:
       - name: Check Django health
         run: |
           docker exec app_container python manage.py check
+
+      # 2️⃣ Login Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       # 1️⃣1️⃣ Tag and push Docker image (release)
       - name: Tag & push Docker image
