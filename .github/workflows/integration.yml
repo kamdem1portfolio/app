@@ -97,6 +97,9 @@ jobs:
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
             ${{ env.IMAGE_NAME }}:latest sleep infinity
 
+      - name: Show logs of app container
+        run: docker logs app_container
+
       # 7️⃣ Apply migrations (inside container)
       - name: Apply migrations (inside container)
         run: |
