@@ -19,6 +19,7 @@ jobs:
 
     env:
       NETWORK_NAME: github-ci-network
+      POSTGRES_IMAGE: postgres:15
     
     steps:
       # 1️⃣ Checkout code
@@ -74,7 +75,7 @@ jobs:
             -e POSTGRES_DB=${{ secrets.DB_NAME }} \
             -e POSTGRES_USER=${{ secrets.DB_USER }} \
             -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
-            $POSTGRES_IMAGE
+            ${{ env.POSTGRES_IMAGE }}
 
       - name: Wait for Postgres to become ready
         run: |
