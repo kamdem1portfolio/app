@@ -80,6 +80,17 @@ jobs:
             -e POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
             ${{ env.POSTGRES_IMAGE }}
 
+      # 7️⃣ Wait for Postgres to become ready
+      - name: Wait for Postgres to become ready
+        run: |
+          echo "Waiting for Postgres to be ready..."
+          # use pg_isready inside the postgres container
+          until docker exec ci_postgres pg_isready -U "${{ secrets.DB_USER }}" -d "${{ secrets.DB_NAME }}" >/dev/null 2>&1; do
+            echo "Postgres not ready yet - sleeping 2s"
+            sleep 2
+          done
+          echo "Postgres is ready."
+
       # 7️⃣ Start application container (detached, keep alive)
       - name: Start application container (detached, keep alive)
         run: |
@@ -96,9 +107,6 @@ jobs:
             -e STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} \
             -e STRIPE_COUPON_ID_PERCENT=${{ secrets.STRIPE_COUPON_ID_PERCENT }} \
             ${{ env.IMAGE_NAME }}:latest sleep infinity
-
-      - name: Show logs of app container
-        run: docker logs app_container
 
       # 7️⃣ Apply migrations (inside container)
       - name: Apply migrations (inside container)
