@@ -20,7 +20,7 @@ jobs:
     env:
       NETWORK_NAME: github-ci-network
       POSTGRES_IMAGE: postgres:15
-      IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
+      IMAGE_NAME: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.DOCKER_REPO }}
     
     steps:
       # 1️⃣ Checkout code
